@@ -4,27 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<meta name="description" content="Suivi manuel des statistiques de tes lives TikTok : progression, comparaisons et conseils.">
-<title>Suivi de live · stats TikTok</title>
+<meta name="description" content="Statik : note les stats de tes lives TikTok et vois ce qui te fait grandir (progression, créneaux, jeux, conseils).">
+<title>Statik · les stats de tes lives TikTok</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='13' fill='%231A1733'/%3E%3Crect x='8' y='30' width='6' height='10' rx='1.5' fill='%23fff' opacity='.5'/%3E%3Crect x='17' y='23' width='6' height='17' rx='1.5' fill='%23fff' opacity='.78'/%3E%3Crect x='26' y='16' width='6' height='24' rx='1.5' fill='%23fff'/%3E%3Crect x='33' y='9' width='6' height='31' rx='1.5' fill='%233DE0F5'/%3E%3Crect x='35' y='26' width='6' height='14' rx='1.5' fill='%23FF4D8D'/%3E%3Crect x='37' y='8' width='6' height='16' rx='1.5' fill='%23FF4D8D'/%3E%3Crect y='24.3' width='48' height='1.7' fill='%231A1733'/%3E%3Crect y='32' width='48' height='1.2' fill='%231A1733'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F4EFE6; --surface:#FFFBF4; --ink:#1E1B2E; --muted:#5B5770;
-  --line:#DCD2C0; --edge:#8B8599; --track:#E8DFCF; --soft:#EFE7D8;
-  --pic:#C2255C; --avg:#0B7A75; --danger:#B42318; --focus:#1D4ED8;
-  --tick:rgba(30,27,46,.2); --btn-bg:#1E1B2E; --btn-ink:#FFFBF4;
-  --head:"Bricolage Grotesque","Segoe UI",system-ui,-apple-system,sans-serif;
-  --body:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
-  --radius:16px;
+  --bg:#ECEEF6; --surface:#FFFFFF; --ink:#14122B; --muted:#55527A;
+  --line:#D5D8E8; --edge:#8A8EB0; --track:#DCDFEF; --soft:#F1F2FA;
+  --pic:#E0115F; --avg:#0A7C90; --danger:#B42318; --focus:#1D4ED8;
+  --tick:rgba(255,255,255,.3); --btn-bg:#D40F5A; --btn-ink:#FFFFFF;
+  --head:"Unbounded","Segoe UI",system-ui,-apple-system,sans-serif;
+  --body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+  --radius:12px;
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --bg:#14121F; --surface:#1D1A2B; --ink:#F1ECFA; --muted:#B1ABC6;
-    --line:#37324D; --edge:#8A84A6; --track:#2A2640; --soft:#26223A;
-    --pic:#FF7AA2; --avg:#4FE0D0; --danger:#FF8A80; --focus:#8AB8FF;
-    --tick:rgba(255,255,255,.22); --btn-bg:#F1ECFA; --btn-ink:#14121F;
+    --bg:#0D0C17; --surface:#171528; --ink:#F3F1FF; --muted:#A9A6C8;
+    --line:#2D2A47; --edge:#7E7AA6; --track:#25223D; --soft:#1E1C34;
+    --pic:#FF4D8D; --avg:#3DE0F5; --danger:#FF8A80; --focus:#8AB8FF;
+    --btn-bg:#FF4D8D; --btn-ink:#14081A;
   }
 }
 *{box-sizing:border-box}
@@ -36,9 +37,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.5 var(--body
 .skip:focus{left:8px}
 .wrap{max-width:1080px;margin:0 auto;padding:20px 16px 90px}
 .top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
-h1{font:800 clamp(1.9rem,5vw,2.7rem)/1.05 var(--head);letter-spacing:-.02em;margin:0}
+h1{font:800 clamp(1.8rem,5vw,2.4rem)/1 var(--head);letter-spacing:-.045em;margin:0}
 h2{font:700 1.25rem/1.2 var(--head);margin:0 0 14px}
-.eyebrow{font:600 .78rem/1.2 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.eyebrow{font:600 .78rem/1.2 var(--body);color:var(--muted);margin:0 0 6px}
 h2.eyebrow{font-size:.78rem;margin-bottom:6px}
 .sub{margin:6px 0 0;color:var(--muted)}
 .actions{display:flex;flex-wrap:wrap;gap:10px}
@@ -59,12 +60,13 @@ section{margin-top:20px}
  
 /* Objectif : l'élément visuel principal */
 .goal-top{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
-.count{margin:0;font:800 clamp(3.6rem,15vw,7.5rem)/.95 var(--head);letter-spacing:-.03em}
-.count .of{font-size:clamp(1rem,3.4vw,1.5rem);font-weight:500;color:var(--muted);letter-spacing:0}
-.pct{margin:0;font:800 clamp(2rem,8vw,3.6rem)/1 var(--head);color:var(--pic)}
-.gauge{position:relative;height:36px;border-radius:999px;background:var(--track);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
-.gauge .fill{position:absolute;inset:0;background:linear-gradient(90deg,#FF4D6D 0%,#FF9F1C 50%,#2EC4B6 100%);clip-path:inset(0 calc(100% - var(--p,0%)) 0 0 round 999px);transition:clip-path .9s cubic-bezier(.2,.8,.2,1)}
-.gauge .tick{position:absolute;top:0;bottom:0;width:2px;background:var(--tick)}
+.count{margin:0;font:800 clamp(2.8rem,11vw,5.2rem)/.95 var(--head);letter-spacing:-.05em}
+.count .of{font:500 clamp(.9rem,3vw,1.2rem) var(--body);color:var(--muted);letter-spacing:0}
+.pct{margin:0;font:800 clamp(1.8rem,7vw,3rem)/1 var(--head);letter-spacing:-.04em;color:var(--pic)}
+.gauge{position:relative;height:40px;border-radius:6px;overflow:hidden}
+.gauge::before,.gauge .fill{content:"";position:absolute;inset:0;-webkit-mask:repeating-linear-gradient(90deg,#000 0 calc(2% - 3px),transparent 0 2%);mask:repeating-linear-gradient(90deg,#000 0 calc(2% - 3px),transparent 0 2%)}
+.gauge::before{background:var(--track)}
+.gauge .fill{background:linear-gradient(90deg,var(--avg),var(--pic));clip-path:inset(0 calc(100% - var(--p,0%)) 0 0);transition:clip-path .9s cubic-bezier(.2,.8,.2,1)}
 .remaining{margin:12px 0 16px;color:var(--muted)}
 .goal-form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
 .goal-form .field{flex:1 1 180px;max-width:260px}
@@ -91,7 +93,7 @@ input[aria-invalid="true"]{border-color:var(--danger);border-width:2px}
 .advice{list-style:none;margin:0;padding:0}
 .advice li{padding:12px 0;border-top:1px solid var(--line)}
 .advice li:first-child{border-top:0;padding-top:0}
-.advice .tag{display:block;font:600 .75rem/1.2 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.advice .tag{display:block;font:600 .75rem/1.2 var(--body);color:var(--muted);margin-bottom:2px}
 .advice p{margin:0}
 .empty{color:var(--muted);margin:0}
  
@@ -141,17 +143,27 @@ dialog h2{margin-bottom:8px}
 dialog p{margin:0 0 18px;overflow-wrap:anywhere}
 .dlg-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 @media(prefers-reduced-motion:reduce){.gauge .fill{transition:none}}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:56px;height:56px;border-radius:15px;flex:none;box-shadow:0 0 0 1px var(--line)}
+.top{align-items:center;margin-bottom:8px}
+.sub{max-width:34ch}
+h2{font-size:1.05rem;letter-spacing:-.01em}
+.goal.card{--surface:#15122B;--ink:#F3F1FF;--muted:#B4B0D6;--line:#2E2A4D;--edge:#7F7AAE;--bg:#0F0D20;--track:#27234A;--soft:#201C3D;--pic:#FF4D8D;--avg:#3DE0F5;--btn-bg:#FF4D8D;--btn-ink:#14081A;--focus:#8AB8FF;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),var(--surface);color:var(--ink);border-color:var(--line)}
+.scale{position:relative;height:20px;margin-top:6px;font-size:.75rem;color:var(--muted)}
+.scale span{position:absolute;top:0;transform:translateX(-50%)}
+.advice .tag{color:var(--pic)}
+.kpi{border-radius:10px}
+.kpi .v{font-size:1.25rem;letter-spacing:-.03em}
+tbody tr:hover{background:var(--soft)}
+@media(max-width:520px){.logo{width:46px;height:46px;border-radius:12px}}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Aller au contenu</a>
 <div class="wrap">
   <header class="top">
-    <div>
-      <p class="eyebrow">TikTok Live</p>
-      <h1>Suivi de live</h1>
-      <p class="sub">Note tes chiffres après chaque live. Tout reste sur cet appareil.</p>
-    </div>
+    <div class="brand"><svg class='logo' viewBox='0 0 48 48' aria-hidden='true'><rect width='48' height='48' rx='13' fill='#1A1733'/><rect x='8' y='30' width='6' height='10' rx='1.5' fill='#fff' opacity='.5'/><rect x='17' y='23' width='6' height='17' rx='1.5' fill='#fff' opacity='.78'/><rect x='26' y='16' width='6' height='24' rx='1.5' fill='#fff'/><rect x='33' y='9' width='6' height='31' rx='1.5' fill='#3DE0F5'/><rect x='35' y='26' width='6' height='14' rx='1.5' fill='#FF4D8D'/><rect x='37' y='8' width='6' height='16' rx='1.5' fill='#FF4D8D'/><rect y='24.3' width='48' height='1.7' fill='#1A1733'/><rect y='32' width='48' height='1.2' fill='#1A1733'/></svg><div><h1>Statik</h1><p class="sub">Les stats de tes lives TikTok. Tout reste sur cet appareil.</p></div></div>
     <div class="actions">
       <button type="button" class="btn" id="btnDemo">Charger des exemples</button>
       <button type="button" class="btn btn-danger" id="btnClear">Tout effacer</button>
@@ -170,8 +182,8 @@ dialog p{margin:0 0 18px;overflow-wrap:anywhere}
       </div>
       <div class="gauge" id="gauge" role="progressbar" aria-labelledby="goalTitle" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0">
         <div class="fill"></div>
-        <span class="tick" style="left:25%"></span><span class="tick" style="left:50%"></span><span class="tick" style="left:75%"></span>
-      </div>
+              </div>
+      <div class="scale" aria-hidden="true"><span style="left:25%">25 %</span><span style="left:50%">50 %</span><span style="left:75%">75 %</span></div>
       <p class="remaining" id="remaining"></p>
       <form id="goalForm" class="goal-form" novalidate>
         <div class="field">
@@ -482,7 +494,7 @@ function renderGoal() {
   $('subTarget').textContent = nf0.format(tgt);
   $('pct').textContent = nf0.format(Math.floor(pct)) + ' %';
   var g = $('gauge');
-  g.style.setProperty('--p', fill + '%');
+  g.style.setProperty('--p', Math.ceil(fill / 2) * 2 + '%');
   g.setAttribute('aria-valuemax', String(tgt));
   g.setAttribute('aria-valuenow', String(Math.min(cur, tgt)));
   g.setAttribute('aria-valuetext', nf0.format(cur) + ' abonnés sur ' + nf0.format(tgt) + ', ' + nf0.format(Math.floor(pct)) + ' %');
