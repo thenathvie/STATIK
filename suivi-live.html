@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Suivi manuel des statistiques de tes lives TikTok : progression, comparaisons et conseils.">
+<title>Suivi de live · stats TikTok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4EFE6; --surface:#FFFBF4; --ink:#1E1B2E; --muted:#5B5770;
+  --line:#DCD2C0; --edge:#8B8599; --track:#E8DFCF; --soft:#EFE7D8;
+  --pic:#C2255C; --avg:#0B7A75; --danger:#B42318; --focus:#1D4ED8;
+  --tick:rgba(30,27,46,.2); --btn-bg:#1E1B2E; --btn-ink:#FFFBF4;
+  --head:"Bricolage Grotesque","Segoe UI",system-ui,-apple-system,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --radius:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#14121F; --surface:#1D1A2B; --ink:#F1ECFA; --muted:#B1ABC6;
+    --line:#37324D; --edge:#8A84A6; --track:#2A2640; --soft:#26223A;
+    --pic:#FF7AA2; --avg:#4FE0D0; --danger:#FF8A80; --focus:#8AB8FF;
+    --tick:rgba(255,255,255,.22); --btn-bg:#F1ECFA; --btn-ink:#14121F;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.5 var(--body);font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--btn-bg);color:var(--btn-ink);padding:8px 14px;border-radius:8px;z-index:20}
+.skip:focus{left:8px}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 90px}
+.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
+h1{font:800 clamp(1.9rem,5vw,2.7rem)/1.05 var(--head);letter-spacing:-.02em;margin:0}
+h2{font:700 1.25rem/1.2 var(--head);margin:0 0 14px}
+.eyebrow{font:600 .78rem/1.2 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h2.eyebrow{font-size:.78rem;margin-bottom:6px}
+.sub{margin:6px 0 0;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+section{margin-top:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.two{display:grid;gap:20px;margin-top:20px}
+.two>section{margin-top:0}
+@media(min-width:900px){.two{grid-template-columns:1fr 1fr}}
+ 
+.btn{font:600 .95rem var(--body);min-height:44px;padding:0 18px;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--soft)}
+.btn-primary{background:var(--btn-bg);color:var(--btn-ink);border-color:var(--btn-bg)}
+.btn-primary:hover{background:var(--btn-bg);opacity:.9}
+.btn-danger{color:var(--danger);border-color:var(--danger)}
+.btn-small{min-height:36px;padding:0 12px;font-size:.85rem}
+ 
+.notice{background:var(--soft);border:1px solid var(--edge);border-radius:10px;padding:10px 14px;margin:0 0 16px}
+ 
+/* Objectif : l'élément visuel principal */
+.goal-top{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.count{margin:0;font:800 clamp(3.6rem,15vw,7.5rem)/.95 var(--head);letter-spacing:-.03em}
+.count .of{font-size:clamp(1rem,3.4vw,1.5rem);font-weight:500;color:var(--muted);letter-spacing:0}
+.pct{margin:0;font:800 clamp(2rem,8vw,3.6rem)/1 var(--head);color:var(--pic)}
+.gauge{position:relative;height:36px;border-radius:999px;background:var(--track);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.gauge .fill{position:absolute;inset:0;background:linear-gradient(90deg,#FF4D6D 0%,#FF9F1C 50%,#2EC4B6 100%);clip-path:inset(0 calc(100% - var(--p,0%)) 0 0 round 999px);transition:clip-path .9s cubic-bezier(.2,.8,.2,1)}
+.gauge .tick{position:absolute;top:0;bottom:0;width:2px;background:var(--tick)}
+.remaining{margin:12px 0 16px;color:var(--muted)}
+.goal-form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.goal-form .field{flex:1 1 180px;max-width:260px}
+.msg{margin:10px 0 0;min-height:1.4em;color:var(--muted);font-size:.92rem}
+ 
+/* Indicateurs */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
+@media(min-width:720px){.kpis{grid-template-columns:repeat(5,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .v{font:700 1.55rem/1.1 var(--head);overflow-wrap:anywhere}
+.kpi .l{color:var(--muted);font-size:.85rem;margin-top:2px}
+ 
+/* Formulaire */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px 12px}
+.field label{display:block;font-weight:600;font-size:.9rem;margin-bottom:4px}
+.field.full{grid-column:1/-1}
+input{font:inherit;font-size:1rem;width:100%;min-height:44px;padding:0 12px;border-radius:10px;border:1.5px solid var(--edge);background:var(--bg);color:var(--ink)}
+input[aria-invalid="true"]{border-color:var(--danger);border-width:2px}
+.err{color:var(--danger);font-size:.85rem;margin:4px 0 0}
+.summary{color:var(--danger);font-weight:600;margin:12px 0 0}
+.form-actions{margin-top:16px}
+ 
+/* Conseils */
+.advice{list-style:none;margin:0;padding:0}
+.advice li{padding:12px 0;border-top:1px solid var(--line)}
+.advice li:first-child{border-top:0;padding-top:0}
+.advice .tag{display:block;font:600 .75rem/1.2 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.advice p{margin:0}
+.empty{color:var(--muted);margin:0}
+ 
+/* Courbe */
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 10px;padding:0;list-style:none;font-size:.9rem}
+.sw{display:inline-block;width:24px;height:0;border-top:3px solid var(--pic);vertical-align:middle;margin-right:6px}
+.sw.avg{border-top:3px dashed var(--avg)}
+.chart{position:relative}
+.chart svg{display:block;max-width:100%;height:auto}
+.gl{stroke:var(--line);stroke-width:1}
+.tl{fill:var(--muted);font:11px var(--body)}
+.l-peak{fill:none;stroke:var(--pic);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.l-avg{fill:none;stroke:var(--avg);stroke-width:2.5;stroke-dasharray:6 4;stroke-linejoin:round}
+.m-peak{fill:var(--pic);stroke:var(--surface);stroke-width:1.5}
+.m-avg{fill:var(--avg);stroke:var(--surface);stroke-width:1.5}
+.guide{stroke:var(--edge);stroke-width:1;stroke-dasharray:3 3}
+.hit{fill:transparent;cursor:pointer}
+.hit:focus{outline:none;fill:rgba(128,128,128,.12);stroke:var(--focus);stroke-width:2}
+.tip{position:absolute;z-index:5;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 12px;font-size:.85rem;line-height:1.4;max-width:240px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.tip strong{display:block;overflow-wrap:anywhere}
+ 
+/* Comparaisons */
+.rows{list-style:none;margin:0;padding:0;display:grid;gap:16px}
+.row-head,.row-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.row-head .name{font-weight:600;overflow-wrap:anywhere}
+.row-head small,.row-head .meta{color:var(--muted);font-size:.85rem;font-weight:400}
+.bar{height:10px;border-radius:999px;background:var(--track);overflow:hidden;margin:6px 0}
+.bar>span{display:block;height:100%;background:var(--avg);border-radius:999px}
+.row-foot{font-size:.9rem;color:var(--muted)}
+.row-foot b{color:var(--ink)}
+.more{margin:12px 0 0;color:var(--muted);font-size:.9rem}
+ 
+/* Historique */
+.table-wrap{position:relative;overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:780px;font-size:.92rem}
+th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:.8rem;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+th.txt,td.txt{text-align:left}
+td.game{white-space:normal;overflow-wrap:anywhere;min-width:150px;max-width:260px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ 
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:500;z-index:30;max-width:calc(100vw - 32px);text-align:center}
+dialog{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink);padding:22px;width:min(420px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(10,8,20,.55)}
+dialog h2{margin-bottom:8px}
+dialog p{margin:0 0 18px;overflow-wrap:anywhere}
+.dlg-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+@media(prefers-reduced-motion:reduce){.gauge .fill{transition:none}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">TikTok Live</p>
+      <h1>Suivi de live</h1>
+      <p class="sub">Note tes chiffres après chaque live. Tout reste sur cet appareil.</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn" id="btnDemo">Charger des exemples</button>
+      <button type="button" class="btn btn-danger" id="btnClear">Tout effacer</button>
+    </div>
+  </header>
+ 
+  <noscript><p class="notice">Active JavaScript pour utiliser cet outil.</p></noscript>
+  <p id="storageWarn" class="notice" role="status" hidden>La sauvegarde est indisponible dans ce navigateur. Tes données seront perdues quand tu fermeras la page.</p>
+ 
+  <main id="main">
+    <section class="goal card" aria-labelledby="goalTitle">
+      <h2 class="eyebrow" id="goalTitle">Objectif d’abonnés</h2>
+      <div class="goal-top">
+        <p class="count"><span id="subNow">0</span><span class="of"> / <span id="subTarget">500</span> abonnés</span></p>
+        <p class="pct" id="pct">0 %</p>
+      </div>
+      <div class="gauge" id="gauge" role="progressbar" aria-labelledby="goalTitle" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0">
+        <div class="fill"></div>
+        <span class="tick" style="left:25%"></span><span class="tick" style="left:50%"></span><span class="tick" style="left:75%"></span>
+      </div>
+      <p class="remaining" id="remaining"></p>
+      <form id="goalForm" class="goal-form" novalidate>
+        <div class="field">
+          <label for="g-target">Objectif (abonnés)</label>
+          <input id="g-target" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="g-start">Abonnés avant ton 1er live</label>
+          <input id="g-start" inputmode="numeric" autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-primary">Mettre à jour l’objectif</button>
+      </form>
+      <p class="msg" id="goalMsg" role="status"></p>
+    </section>
+ 
+    <section aria-labelledby="kpiTitle">
+      <h2 class="vh" id="kpiTitle">Indicateurs globaux</h2>
+      <div class="kpis" id="kpis"></div>
+    </section>
+ 
+    <div class="two">
+      <section class="card" aria-labelledby="formTitle">
+        <h2 id="formTitle">Ajouter un live</h2>
+        <form id="liveForm" novalidate>
+          <div class="fgrid">
+            <div class="field">
+              <label for="f-date">Date</label>
+              <input id="f-date" type="date" required aria-describedby="err-date">
+              <p class="err" id="err-date" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-time">Heure de début</label>
+              <input id="f-time" type="time" required aria-describedby="err-time">
+              <p class="err" id="err-time" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-duration">Durée (minutes)</label>
+              <input id="f-duration" inputmode="numeric" autocomplete="off" required aria-describedby="err-duration">
+              <p class="err" id="err-duration" hidden></p>
+            </div>
+            <div class="field full">
+              <label for="f-game">Jeu ou contenu</label>
+              <input id="f-game" maxlength="60" autocomplete="off" list="gamesList" required aria-describedby="err-game">
+              <datalist id="gamesList"></datalist>
+              <p class="err" id="err-game" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-peak">Pic de viewers</label>
+              <input id="f-peak" inputmode="numeric" autocomplete="off" required aria-describedby="err-peak">
+              <p class="err" id="err-peak" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-avg">Viewers moyens</label>
+              <input id="f-avg" inputmode="numeric" autocomplete="off" required aria-describedby="err-avg">
+              <p class="err" id="err-avg" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-subs">Nouveaux abonnés</label>
+              <input id="f-subs" inputmode="numeric" autocomplete="off" required aria-describedby="err-subs">
+              <p class="err" id="err-subs" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-gifts">Cadeaux (€)</label>
+              <input id="f-gifts" inputmode="decimal" autocomplete="off" required aria-describedby="err-gifts">
+              <p class="err" id="err-gifts" hidden></p>
+            </div>
+            <div class="field">
+              <label for="f-comments">Commentaires</label>
+              <input id="f-comments" inputmode="numeric" autocomplete="off" required aria-describedby="err-comments">
+              <p class="err" id="err-comments" hidden></p>
+            </div>
+          </div>
+          <p class="summary" id="formMsg" role="alert" hidden></p>
+          <div class="form-actions"><button type="submit" class="btn btn-primary">Enregistrer le live</button></div>
+        </form>
+      </section>
+ 
+      <section class="card" aria-labelledby="advTitle">
+        <h2 id="advTitle">Conseils pour tes prochains lives</h2>
+        <div id="advice"></div>
+      </section>
+    </div>
+ 
+    <section class="card" aria-labelledby="chartTitle">
+      <h2 id="chartTitle">Progression des viewers</h2>
+      <ul class="legend" id="legend" hidden>
+        <li><span class="sw" aria-hidden="true"></span>Pic de viewers</li>
+        <li><span class="sw avg" aria-hidden="true"></span>Viewers moyens</li>
+      </ul>
+      <div class="chart" id="chart"></div>
+    </section>
+ 
+    <div class="two">
+      <section class="card" aria-labelledby="slotTitle">
+        <h2 id="slotTitle">Par créneau</h2>
+        <div id="cmpSlots"></div>
+      </section>
+      <section class="card" aria-labelledby="gameTitle">
+        <h2 id="gameTitle">Par jeu ou contenu</h2>
+        <div id="cmpGames"></div>
+      </section>
+    </div>
+ 
+    <section class="card" aria-labelledby="histTitle">
+      <h2 id="histTitle" tabindex="-1">Historique des lives</h2>
+      <div id="history"></div>
+    </section>
+  </main>
+</div>
+ 
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+ 
+<dialog id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgText">
+  <h2 id="dlgTitle"></h2>
+  <p id="dlgText"></p>
+  <div class="dlg-actions">
+    <button type="button" class="btn" id="dlgCancel">Annuler</button>
+    <button type="button" class="btn btn-primary" id="dlgOk"></button>
+  </div>
+</dialog>
+ 
+<script>
+(function () {
+'use strict';
+ 
+/* ---------- Constantes et état ---------- */
+var KEY = 'tiktok-live-stats-v1';
+var DEFAULT_GOAL = { target: 500, start: 0 };
+var MAX_GOAL = 100000000;
+var state = { lives: [], goal: { target: DEFAULT_GOAL.target, start: DEFAULT_GOAL.start } };
+var store = null;
+var storageOK = true;
+ 
+var SLOTS = [
+  { label: 'Matin', range: '5 h – 12 h', art: 'le matin', cap: 'Le matin' },
+  { label: 'Après-midi', range: '12 h – 18 h', art: 'l’après-midi', cap: 'L’après-midi' },
+  { label: 'Soirée', range: '18 h – 23 h', art: 'la soirée', cap: 'La soirée' },
+  { label: 'Nuit', range: '23 h – 5 h', art: 'la nuit', cap: 'La nuit' }
+];
+ 
+/* ---------- Utilitaires ---------- */
+var $ = function (id) { return document.getElementById(id); };
+var pad = function (n) { return String(n).padStart(2, '0'); };
+var nf = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
+var nf0 = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+var eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+var fmt = function (v) { return nf.format(v); };
+var plural = function (n, word) { return word + (n > 1 ? 's' : ''); };
+ 
+function fmtDuration(min) {
+  var h = Math.floor(min / 60), m = Math.round(min % 60);
+  if (h && m) return h + ' h ' + pad(m);
+  if (h) return h + ' h';
+  return m + ' min';
+}
+function fmtDate(d) { var p = d.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+function fmtShort(d) { var p = d.split('-'); return p[2] + '/' + p[1]; }
+function todayStr() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function nowHM() { var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function normGame(g) { return g.replace(/\s+/g, ' ').trim().toLocaleLowerCase('fr'); }
+function validDate(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  var p = s.split('-').map(Number), d = new Date(p[0], p[1] - 1, p[2]);
+  return d.getFullYear() === p[0] && d.getMonth() === p[1] - 1 && d.getDate() === p[2];
+}
+ 
+/* Création de noeuds DOM : le texte passe toujours par des noeuds texte (pas d'injection HTML). */
+function h(tag, attrs) {
+  var el = document.createElement(tag);
+  if (attrs) for (var k in attrs) {
+    var v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  var kids = Array.prototype.slice.call(arguments, 2);
+  kids.forEach(function add(kid) {
+    if (kid == null || kid === false) return;
+    if (Array.isArray(kid)) { kid.forEach(add); return; }
+    el.appendChild(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  });
+  return el;
+}
+function s(tag, attrs) {
+  var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  if (attrs) for (var k in attrs) {
+    if (attrs[k] == null) continue;
+    if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), attrs[k]);
+    else el.setAttribute(k, attrs[k]);
+  }
+  for (var i = 2; i < arguments.length; i++) {
+    var kid = arguments[i];
+    if (kid == null) continue;
+    el.appendChild(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+ 
+var toastTimer;
+function notify(msg) {
+  var t = $('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.hidden = true; }, 4000);
+}
+ 
+/* ---------- Sauvegarde ---------- */
+function cleanLive(o) {
+  if (!o || typeof o !== 'object') return null;
+  var date = String(o.date || ''), time = String(o.time || '');
+  if (!validDate(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return null;
+  var game = String(o.game || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (!game) return null;
+  var n = function (v, max) { v = Number(v); return isFinite(v) && v >= 0 ? Math.min(v, max) : 0; };
+  var peak = Math.round(n(o.peak, 1e7));
+  var avg = Math.min(Math.round(n(o.avg, 1e7)), peak);
+  return {
+    id: String(o.id || uid()), date: date, time: time, game: game,
+    duration: Math.max(1, Math.round(n(o.duration, 1440))),
+    peak: peak, avg: avg,
+    subs: Math.round(n(o.subs, 1e7)),
+    gifts: Math.round(n(o.gifts, 1e7) * 100) / 100,
+    comments: Math.round(n(o.comments, 1e9))
+  };
+}
+function loadState() {
+  try { store = window.localStorage; store.setItem('__t', '1'); store.removeItem('__t'); }
+  catch (e) { store = null; }
+  storageOK = !!store;
+  if (!store) return;
+  try {
+    var raw = store.getItem(KEY);
+    if (!raw) return;
+    var d = JSON.parse(raw);
+    if (d && Array.isArray(d.lives)) state.lives = d.lives.map(cleanLive).filter(Boolean);
+    if (d && d.goal) {
+      var t = Math.round(Number(d.goal.target)), st = Math.round(Number(d.goal.start));
+      if (isFinite(t) && t >= 1 && t <= MAX_GOAL) state.goal.target = t;
+      if (isFinite(st) && st >= 0 && st <= MAX_GOAL) state.goal.start = st;
+    }
+  } catch (e) { /* données illisibles : on repart d'un état vide */ }
+}
+function save() {
+  if (store) {
+    try { store.setItem(KEY, JSON.stringify(state)); storageOK = true; }
+    catch (e) { storageOK = false; }
+  }
+  $('storageWarn').hidden = storageOK;
+}
+ 
+/* ---------- Calculs ---------- */
+function sorted() {
+  return state.lives.slice().sort(function (a, b) {
+    var x = a.date + 'T' + a.time, y = b.date + 'T' + b.time;
+    return x < y ? -1 : x > y ? 1 : (a.id < b.id ? -1 : 1);
+  });
+}
+function totals(L) {
+  var t = { count: 0, min: 0, peak: 0, gifts: 0, comments: 0, subs: 0 };
+  L.forEach(function (l) {
+    t.count++; t.min += l.duration; t.peak = Math.max(t.peak, l.peak);
+    t.gifts += l.gifts; t.comments += l.comments; t.subs += l.subs;
+  });
+  return t;
+}
+function slotOf(time) {
+  var hr = Number(time.slice(0, 2));
+  if (hr >= 5 && hr < 12) return 'Matin';
+  if (hr >= 12 && hr < 18) return 'Après-midi';
+  if (hr >= 18 && hr < 23) return 'Soirée';
+  return 'Nuit';
+}
+function group(L, keyFn, labelFn) {
+  var m = new Map();
+  L.forEach(function (l) {
+    var k = keyFn(l), g = m.get(k);
+    if (!g) { g = { key: k, label: labelFn(l), count: 0, sumAvg: 0, min: 0, subs: 0 }; m.set(k, g); }
+    g.count++; g.sumAvg += l.avg; g.min += l.duration; g.subs += l.subs;
+  });
+  m.forEach(function (g) {
+    g.avg = g.sumAvg / g.count;
+    g.sph = g.min > 0 ? g.subs / (g.min / 60) : 0;
+  });
+  return m;
+}
+function slotGroups(L) {
+  var m = group(L, function (l) { return slotOf(l.time); }, function (l) { return slotOf(l.time); });
+  return SLOTS.map(function (sl) {
+    var g = m.get(sl.label) || { label: sl.label, count: 0, avg: 0, sph: 0 };
+    g.slot = sl; return g;
+  });
+}
+function gameGroups(L) {
+  var m = group(L, function (l) { return normGame(l.game); }, function (l) { return l.game; });
+  return Array.from(m.values());
+}
+function meanOf(arr, fn) { return arr.reduce(function (a, l) { return a + fn(l); }, 0) / arr.length; }
+ 
+/* ---------- Rendu : objectif ---------- */
+function renderGoal() {
+  var T = totals(state.lives);
+  var cur = state.goal.start + T.subs, tgt = state.goal.target;
+  var pct = tgt > 0 ? cur / tgt * 100 : 0;
+  var fill = Math.max(0, Math.min(100, pct));
+  $('subNow').textContent = nf0.format(cur);
+  $('subTarget').textContent = nf0.format(tgt);
+  $('pct').textContent = nf0.format(Math.floor(pct)) + ' %';
+  var g = $('gauge');
+  g.style.setProperty('--p', fill + '%');
+  g.setAttribute('aria-valuemax', String(tgt));
+  g.setAttribute('aria-valuenow', String(Math.min(cur, tgt)));
+  g.setAttribute('aria-valuetext', nf0.format(cur) + ' abonnés sur ' + nf0.format(tgt) + ', ' + nf0.format(Math.floor(pct)) + ' %');
+  var left = tgt - cur;
+  $('remaining').textContent = left > 0
+    ? 'Il te reste ' + nf0.format(left) + ' ' + plural(left, 'abonné') + ' à gagner.'
+    : 'Objectif atteint, bravo ! Fixe-toi le suivant.';
+}
+ 
+/* ---------- Rendu : indicateurs ---------- */
+function renderKpis() {
+  var T = totals(state.lives), box = $('kpis');
+  box.replaceChildren();
+  [
+    [nf0.format(T.count), plural(T.count, 'Live') + ' enregistré' + (T.count > 1 ? 's' : '')],
+    [fmtDuration(T.min), 'Heures streamées'],
+    [nf0.format(T.peak), 'Pic record (viewers)'],
+    [eur.format(T.gifts), 'Cadeaux reçus'],
+    [nf0.format(T.comments), 'Commentaires']
+  ].forEach(function (k) {
+    box.appendChild(h('div', { class: 'kpi' }, h('div', { class: 'v' }, k[0]), h('div', { class: 'l' }, k[1])));
+  });
+}
+ 
+/* ---------- Rendu : conseils ---------- */
+function advSlot(L) {
+  var withData = slotGroups(L).filter(function (g) { return g.count > 0; });
+  if (withData.length < 2) {
+    return ['Tous tes lives sont placés ', withData[0].slot.art, '. Teste un autre créneau pour savoir quand ton public est le plus présent.'];
+  }
+  var best = withData.reduce(function (a, b) { return b.avg > a.avg ? b : a; });
+  var worst = withData.reduce(function (a, b) { return b.avg < a.avg ? b : a; });
+  if (best.avg === worst.avg) return ['Tous tes créneaux attirent autant de viewers pour l’instant (', fmt(best.avg), ' en moyenne).'];
+  var out = [h('strong', null, best.slot.cap), ' est ton meilleur créneau : ' + fmt(best.avg) + ' viewers en moyenne, '];
+  if (worst.avg > 0) {
+    var p = Math.round((best.avg - worst.avg) / worst.avg * 100);
+    out.push('soit ' + nf0.format(p) + ' % de plus que ' + worst.slot.art + ' (' + fmt(worst.avg) + ').');
+  } else {
+    out.push('alors que ' + worst.slot.art + ' n’en attire aucun.');
+  }
+  if (best.count < 2 || worst.count < 2) out.push(' Il y a peu de lives par créneau : confirme cette piste avec d’autres lives.');
+  return out;
+}
+function advGame(L) {
+  var games = gameGroups(L), T = totals(L);
+  if (games.length < 2) return ['Tous tes lives portent sur « ', games[0].label, ' ». Varie les jeux ou les contenus pour voir lequel te fait gagner le plus d’abonnés.'];
+  var best = games.reduce(function (a, b) { return b.sph > a.sph ? b : a; });
+  var avgSph = T.min > 0 ? T.subs / (T.min / 60) : 0;
+  if (best.sph === 0) return ['Aucun jeu ne t’a encore rapporté d’abonnés. Enregistre d’autres lives pour voir ce qui change.'];
+  var ratio = avgSph > 0 ? best.sph / avgSph : 1;
+  if (ratio < 1.05) return ['Tous tes jeux rapportent à peu près autant : ' + fmt(avgSph) + ' abonnés par heure.'];
+  var out = [h('strong', null, best.label), ' est ton jeu le plus efficace : ' + fmt(best.sph) + ' abonnés par heure, soit ' + fmt(ratio) + ' fois ta moyenne (' + fmt(avgSph) + ').'];
+  if (best.count < 2) out.push(' Ce n’est mesuré que sur un live : à confirmer.');
+  return out;
+}
+function advTrend(L) {
+  if (L.length < 4) return ['Il faut au moins 4 lives pour mesurer ta tendance.'];
+  var last = L.slice(-3), prev = L.slice(-6, -3);
+  var a = meanOf(last, function (l) { return l.avg; }), b = meanOf(prev, function (l) { return l.avg; });
+  var prevLabel = prev.length === 1 ? 'le live précédent' : 'les ' + prev.length + ' précédents';
+  var head = 'Tes 3 derniers lives ont attiré ' + fmt(a) + ' viewers en moyenne, contre ' + fmt(b) + ' sur ' + prevLabel + ' : ';
+  if (b === 0) return [head + (a > 0 ? 'ça démarre.' : 'rien ne bouge encore.')];
+  var p = (a - b) / b * 100;
+  if (Math.abs(p) < 5) return [head + 'c’est stable.'];
+  return [head, h('strong', null, (p > 0 ? '+' : '−') + nf0.format(Math.abs(Math.round(p))) + ' %'), p > 0 ? '. Tu progresses.' : '. À surveiller.'];
+}
+function advGoal(L) {
+  var T = totals(L), cur = state.goal.start + T.subs, left = state.goal.target - cur;
+  if (left <= 0) return ['Objectif atteint avec ' + nf0.format(cur) + ' abonnés. Fixe-toi un objectif plus haut pour continuer.'];
+  var recent = L.slice(-5), rate = meanOf(recent, function (l) { return l.subs; });
+  if (rate <= 0) return ['Il te reste ' + nf0.format(left) + ' ' + plural(left, 'abonné') + '. Tes derniers lives n’ont pas rapporté d’abonnés, impossible d’estimer le nombre de lives nécessaires.'];
+  var needed = Math.ceil(left / rate);
+  var basis = recent.length < 5 ? 'tes ' + recent.length + ' derniers lives' : 'tes 5 derniers lives';
+  return ['Il te reste ' + nf0.format(left) + ' ' + plural(left, 'abonné') + '. Au rythme de ' + basis + ' (' + fmt(rate) + ' abonnés par live), il te faut environ ',
+    h('strong', null, nf0.format(needed) + ' ' + plural(needed, 'live')), '.'];
+}
+function renderAdvice() {
+  var box = $('advice'), L = sorted();
+  box.replaceChildren();
+  if (L.length < 3) {
+    var missing = 3 - L.length;
+    box.appendChild(h('p', { class: 'empty' }, L.length === 0
+      ? 'Ajoute au moins 3 lives pour recevoir des conseils calculés sur tes chiffres.'
+      : 'Encore ' + missing + ' ' + plural(missing, 'live') + ' à enregistrer pour recevoir tes conseils personnalisés.'));
+    return;
+  }
+  var items = [['Créneau', advSlot(L)], ['Jeu', advGame(L)], ['Tendance', advTrend(L)], ['Objectif', advGoal(L)]];
+  box.appendChild(h('ul', { class: 'advice' }, items.map(function (it) {
+    return h('li', null, h('span', { class: 'tag' }, it[0]), h('p', null, it[1]));
+  })));
+}
+ 
+/* ---------- Rendu : courbe ---------- */
+function niceStep(raw) {
+  if (raw <= 1) return 1;
+  var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  var c = [1, 2, 5, 10];
+  for (var i = 0; i < c.length; i++) if (c[i] * mag >= raw) return c[i] * mag;
+  return 10 * mag;
+}
+function renderChart() {
+  var box = $('chart'), L = sorted();
+  box.replaceChildren();
+  $('legend').hidden = !L.length;
+  if (!L.length) {
+    box.appendChild(h('p', { class: 'empty' }, 'Ton premier live apparaîtra ici. Remplis le formulaire ou charge des exemples.'));
+    return;
+  }
+  var W = Math.max(280, Math.floor(box.clientWidth || 600));
+  var H = W < 520 ? 240 : 300;
+  var m = { t: 14, r: 16, b: 34, l: W < 520 ? 38 : 48 };
+  var iw = W - m.l - m.r, ih = H - m.t - m.b, n = L.length;
+  var maxV = Math.max(1, Math.max.apply(null, L.map(function (l) { return l.peak; })));
+  var step = niceStep(maxV / 4);
+  var yMax = step * Math.max(1, Math.ceil(maxV / step));
+  var X = function (i) { return m.l + (n === 1 ? iw / 2 : i * iw / (n - 1)); };
+  var Y = function (v) { return m.t + ih * (1 - v / yMax); };
+ 
+  var svg = s('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, role: 'group',
+    'aria-label': 'Courbe du pic et des viewers moyens sur ' + n + ' ' + plural(n, 'live') + '. Utilise Tab pour parcourir chaque live.' });
+  for (var v = 0; v <= yMax + 1e-9; v += step) {
+    svg.appendChild(s('line', { class: 'gl', x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v) }));
+    svg.appendChild(s('text', { class: 'tl', x: m.l - 6, y: Y(v) + 4, 'text-anchor': 'end' }, nf0.format(v)));
+  }
+  var perLabel = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(iw / 56))));
+  L.forEach(function (l, i) {
+    if (i % perLabel === 0) svg.appendChild(s('text', { class: 'tl', x: X(i), y: H - 12, 'text-anchor': 'middle' }, fmtShort(l.date)));
+  });
+  var path = function (key) { return L.map(function (l, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(l[key]).toFixed(1); }).join(' '); };
+  if (n > 1) {
+    svg.appendChild(s('path', { class: 'l-avg', d: path('avg') }));
+    svg.appendChild(s('path', { class: 'l-peak', d: path('peak') }));
+  }
+  var guide = s('line', { class: 'guide', y1: m.t, y2: m.t + ih, x1: 0, x2: 0, visibility: 'hidden' });
+  svg.appendChild(guide);
+  L.forEach(function (l, i) {
+    svg.appendChild(s('rect', { class: 'm-avg', x: X(i) - 3.5, y: Y(l.avg) - 3.5, width: 7, height: 7 }));
+    svg.appendChild(s('circle', { class: 'm-peak', cx: X(i), cy: Y(l.peak), r: 4.5 }));
+  });
+ 
+  var tip = h('div', { class: 'tip', hidden: true, role: 'status' });
+  var showTip = function (i) {
+    var l = L[i];
+    tip.replaceChildren(
+      h('strong', null, fmtDate(l.date) + ' à ' + l.time + ' · ' + l.game),
+      h('span', null, 'Pic : ' + nf0.format(l.peak) + ' viewers'), h('br'),
+      h('span', null, 'Moyenne : ' + nf0.format(l.avg) + ' viewers'), h('br'),
+      h('span', null, '+' + nf0.format(l.subs) + ' ' + plural(l.subs, 'abonné'))
+    );
+    tip.hidden = false;
+    guide.setAttribute('x1', X(i)); guide.setAttribute('x2', X(i)); guide.setAttribute('visibility', 'visible');
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    var left = Math.min(Math.max(X(i) - tw / 2, 4), Math.max(4, W - tw - 4));
+    var top = Y(l.peak) - th - 12;
+    if (top < 4) top = Y(l.peak) + 14;
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  };
+  var hideTip = function () { tip.hidden = true; guide.setAttribute('visibility', 'hidden'); };
+  var colW = n === 1 ? iw : iw / (n - 1);
+  L.forEach(function (l, i) {
+    var hit = s('rect', {
+      class: 'hit', x: Math.max(0, X(i) - colW / 2), y: m.t, width: colW, height: ih, tabindex: 0, role: 'img',
+      'aria-label': 'Live du ' + fmtDate(l.date) + ' à ' + l.time + ', ' + l.game + ' : pic ' + l.peak + ' viewers, moyenne ' + l.avg + ' viewers, ' + l.subs + ' nouveaux abonnés'
+    });
+    hit.addEventListener('mouseenter', function () { showTip(i); });
+    hit.addEventListener('focus', function () { showTip(i); });
+    hit.addEventListener('click', function () { showTip(i); });
+    hit.addEventListener('mouseleave', hideTip);
+    hit.addEventListener('blur', hideTip);
+    svg.appendChild(hit);
+  });
+  box.appendChild(svg);
+  box.appendChild(tip);
+}
+ 
+/* ---------- Rendu : comparaisons ---------- */
+function compareRow(label, sub, g, maxAvg) {
+  var pctW = maxAvg > 0 ? Math.round(g.avg / maxAvg * 100) : 0;
+  var bar = h('div', { class: 'bar', role: 'img', 'aria-label': 'Viewers moyens : ' + fmt(g.avg) }, h('span'));
+  bar.firstChild.style.width = pctW + '%';
+  return h('li', null,
+    h('div', { class: 'row-head' },
+      h('span', { class: 'name' }, label, sub ? h('small', null, ' ' + sub) : null),
+      h('span', { class: 'meta' }, g.count ? g.count + ' ' + plural(g.count, 'live') : 'Aucun live')),
+    bar,
+    g.count
+      ? h('div', { class: 'row-foot' },
+          h('span', null, h('b', null, fmt(g.avg)), ' viewers en moyenne'),
+          h('span', null, h('b', null, fmt(g.sph)), ' abonnés par heure'))
+      : h('div', { class: 'row-foot' }, h('span', null, 'Pas encore de données')));
+}
+function renderCompare() {
+  var L = sorted(), bs = $('cmpSlots'), bg = $('cmpGames');
+  bs.replaceChildren(); bg.replaceChildren();
+  if (!L.length) {
+    var msg = 'Ajoute des lives pour comparer tes résultats.';
+    bs.appendChild(h('p', { class: 'empty' }, msg)); bg.appendChild(h('p', { class: 'empty' }, msg));
+    return;
+  }
+  var slots = slotGroups(L);
+  var maxS = Math.max.apply(null, slots.map(function (g) { return g.avg; }));
+  bs.appendChild(h('ul', { class: 'rows' }, slots.map(function (g) { return compareRow(g.slot.label, g.slot.range, g, maxS); })));
+  var games = gameGroups(L).sort(function (a, b) { return b.avg - a.avg || b.count - a.count; });
+  var maxG = Math.max.apply(null, games.map(function (g) { return g.avg; }));
+  bg.appendChild(h('ul', { class: 'rows' }, games.slice(0, 8).map(function (g) { return compareRow(g.label, '', g, maxG); })));
+  if (games.length > 8) bg.appendChild(h('p', { class: 'more' }, '+ ' + (games.length - 8) + ' autres ' + plural(games.length - 8, 'jeu') + ' non affichés.'));
+}
+ 
+/* ---------- Rendu : historique ---------- */
+function renderTable() {
+  var box = $('history'), L = sorted().reverse();
+  box.replaceChildren();
+  if (!L.length) {
+    box.appendChild(h('p', { class: 'empty' }, 'Aucun live enregistré. Remplis le formulaire ou charge des exemples pour voir ton historique ici.'));
+    return;
+  }
+  var th = function (t, txt) { return h('th', { scope: 'col', class: txt ? 'txt' : null }, t); };
+  var thead = h('thead', null, h('tr', null,
+    th('Date', 1), th('Heure', 1), th('Jeu ou contenu', 1), th('Durée'), th('Pic'), th('Moyenne'),
+    th('Abonnés'), th('Cadeaux'), th('Commentaires'), h('th', { scope: 'col' }, h('span', { class: 'vh' }, 'Action'))));
+  var tbody = h('tbody', null, L.map(function (l) {
+    return h('tr', null,
+      h('td', { class: 'txt' }, fmtDate(l.date)),
+      h('td', { class: 'txt' }, l.time),
+      h('td', { class: 'txt game' }, l.game),
+      h('td', null, fmtDuration(l.duration)),
+      h('td', null, nf0.format(l.peak)),
+      h('td', null, nf0.format(l.avg)),
+      h('td', null, nf0.format(l.subs)),
+      h('td', null, eur.format(l.gifts)),
+      h('td', null, nf0.format(l.comments)),
+      h('td', null, h('button', {
+        type: 'button', class: 'btn btn-danger btn-small',
+        'aria-label': 'Supprimer le live du ' + fmtDate(l.date) + ' à ' + l.time + ' (' + l.game + ')',
+        onclick: function () { askDelete(l); }
+      }, 'Supprimer')));
+  }));
+  box.appendChild(h('div', { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': 'Historique des lives, défilable horizontalement' },
+    h('table', null, thead, tbody)));
+}
+ 
+function updateGamesList() {
+  var names = [], seen = {};
+  state.lives.forEach(function (l) { var k = normGame(l.game); if (!seen[k]) { seen[k] = 1; names.push(l.game); } });
+  names.sort(function (a, b) { return a.localeCompare(b, 'fr'); });
+  $('gamesList').replaceChildren.apply($('gamesList'), names.map(function (g) { return h('option', { value: g }); }));
+}
+ 
+function renderAll() {
+  renderGoal(); renderKpis(); renderAdvice(); renderChart(); renderCompare(); renderTable(); updateGamesList();
+}
+ 
+/* ---------- Boîte de confirmation ---------- */
+var pendingOk = null;
+function ask(title, text, okLabel, onOk) {
+  var dlg = $('dlg');
+  $('dlgTitle').textContent = title; $('dlgText').textContent = text; $('dlgOk').textContent = okLabel;
+  pendingOk = onOk;
+  if (typeof dlg.showModal === 'function') { dlg.showModal(); $('dlgCancel').focus(); }
+  else if (window.confirm(title + '\n' + text)) { pendingOk = null; onOk(); }
+}
+$('dlgCancel').addEventListener('click', function () { pendingOk = null; $('dlg').close(); });
+$('dlg').addEventListener('cancel', function () { pendingOk = null; });
+$('dlgOk').addEventListener('click', function () {
+  var fn = pendingOk; pendingOk = null; $('dlg').close();
+  if (fn) fn();
+});
+ 
+function askDelete(l) {
+  ask('Supprimer ce live ?', 'Live du ' + fmtDate(l.date) + ' à ' + l.time + ' · ' + l.game + '. Cette action est définitive.', 'Supprimer', function () {
+    state.lives = state.lives.filter(function (x) { return x.id !== l.id; });
+    save(); renderAll(); notify('Live supprimé.');
+    $('histTitle').focus();
+  });
+}
+ 
+/* ---------- Formulaire d'un live ---------- */
+var F = {
+  date: $('f-date'), time: $('f-time'), duration: $('f-duration'), game: $('f-game'),
+  peak: $('f-peak'), avg: $('f-avg'), subs: $('f-subs'), gifts: $('f-gifts'), comments: $('f-comments')
+};
+function setErr(k, msg) {
+  var el = F[k], p = $('err-' + k);
+  if (msg) { el.setAttribute('aria-invalid', 'true'); p.textContent = msg; p.hidden = false; }
+  else { el.removeAttribute('aria-invalid'); p.textContent = ''; p.hidden = true; }
+}
+function toInt(str, max) {
+  var t = String(str).replace(/[\s\u00a0\u202f]/g, '');
+  if (!/^\d{1,9}$/.test(t)) return null;
+  var n = Number(t);
+  return n <= max ? n : null;
+}
+function toMoney(str) {
+  var t = String(str).replace(/[\s\u00a0\u202f€]/g, '').replace(',', '.');
+  if (!/^\d{1,8}(\.\d{1,2})?$/.test(t)) return null;
+  return Math.round(parseFloat(t) * 100) / 100;
+}
+function validateLive() {
+  var v = {}, e = {}, today = todayStr();
+  var blank = function (el) { return !String(el.value).trim(); };
+  var needInt = function (k, max, msg, min) {
+    if (blank(F[k])) { e[k] = 'Renseigne ce champ (mets 0 s’il n’y a rien).'; return; }
+    var n = toInt(F[k].value, max);
+    if (n === null || n < (min || 0)) e[k] = msg; else v[k] = n;
+  };
+  var d = F.date.value;
+  if (!d) e.date = 'Choisis la date du live.';
+  else if (!validDate(d)) e.date = 'Cette date n’est pas valide.';
+  else if (d > today) e.date = 'La date ne peut pas être dans le futur.';
+  else v.date = d;
+  var t = F.time.value;
+  if (!t) e.time = 'Indique l’heure de début.';
+  else if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) e.time = 'Cette heure n’est pas valide.';
+  else if (v.date === today && t > nowHM()) e.time = 'Cette heure est dans le futur.';
+  else v.time = t;
+  var g = F.game.value.replace(/\s+/g, ' ').trim();
+  if (!g) e.game = 'Indique le jeu ou le contenu.';
+  else if (g.length > 60) e.game = '60 caractères maximum.';
+  else v.game = g;
+  needInt('duration', 1440, 'Entre une durée entière de 1 à 1 440 minutes.', 1);
+  needInt('peak', 1e7, 'Entre un nombre entier de viewers (0 ou plus).');
+  needInt('avg', 1e7, 'Entre un nombre entier de viewers (0 ou plus).');
+  if (v.peak != null && v.avg != null && v.avg > v.peak) { e.avg = 'La moyenne ne peut pas dépasser le pic (' + nf0.format(v.peak) + ').'; delete v.avg; }
+  needInt('subs', 1e7, 'Entre un nombre entier d’abonnés (0 ou plus).');
+  needInt('comments', 1e9, 'Entre un nombre entier de commentaires (0 ou plus).');
+  if (blank(F.gifts)) e.gifts = 'Renseigne ce champ (mets 0 s’il n’y a rien).';
+  else { var m = toMoney(F.gifts.value); if (m === null) e.gifts = 'Entre un montant en euros, par exemple 12,50.'; else v.gifts = m; }
+  return { v: v, e: e };
+}
+Object.keys(F).forEach(function (k) {
+  F[k].addEventListener('input', function () { setErr(k, ''); });
+});
+$('liveForm').addEventListener('submit', function (ev) {
+  ev.preventDefault();
+  var r = validateLive(), count = 0, first = null;
+  Object.keys(F).forEach(function (k) {
+    setErr(k, r.e[k] || '');
+    if (r.e[k]) { count++; if (!first) first = k; }
+  });
+  var sum = $('formMsg');
+  if (count) {
+    sum.textContent = count + ' ' + plural(count, 'champ') + ' à corriger.'; sum.hidden = false;
+    F[first].focus();
+    return;
+  }
+  sum.hidden = true;
+  var v = r.v;
+  state.lives.push({ id: uid(), date: v.date, time: v.time, game: v.game, duration: v.duration, peak: v.peak, avg: v.avg, subs: v.subs, gifts: v.gifts, comments: v.comments });
+  save(); renderAll();
+  $('liveForm').reset();
+  F.date.value = todayStr(); F.date.max = todayStr();
+  notify('Live enregistré.');
+});
+ 
+/* ---------- Objectif ---------- */
+function syncGoalInputs() {
+  $('g-target').value = String(state.goal.target);
+  $('g-start').value = String(state.goal.start);
+}
+$('goalForm').addEventListener('submit', function (ev) {
+  ev.preventDefault();
+  var msg = $('goalMsg'), tEl = $('g-target'), sEl = $('g-start');
+  var t = toInt(tEl.value, MAX_GOAL), st = sEl.value.trim() === '' ? 0 : toInt(sEl.value, MAX_GOAL);
+  tEl.removeAttribute('aria-invalid'); sEl.removeAttribute('aria-invalid');
+  if (t === null || t < 1) {
+    tEl.setAttribute('aria-invalid', 'true'); msg.textContent = 'L’objectif doit être un nombre entier d’au moins 1.'; tEl.focus(); return;
+  }
+  if (st === null) {
+    sEl.setAttribute('aria-invalid', 'true'); msg.textContent = 'Entre un nombre entier d’abonnés (0 ou plus).'; sEl.focus(); return;
+  }
+  state.goal.target = t; state.goal.start = st;
+  save(); syncGoalInputs(); renderAll();
+  msg.textContent = 'Objectif mis à jour.';
+});
+ 
+/* ---------- Exemples et effacement ---------- */
+function dayOffset(n) {
+  var d = new Date(); d.setDate(d.getDate() - n);
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+function sampleLives() {
+  // [jours en arrière, heure, jeu, durée, pic, moyenne, abonnés, cadeaux, commentaires]
+  var rows = [
+    [34, '21:00', 'Minecraft', 120, 18, 11, 4, 0, 96],
+    [32, '15:30', 'EA FC 26', 90, 14, 8, 2, 0, 61],
+    [30, '21:15', 'Minecraft', 150, 24, 14, 6, 3.5, 140],
+    [27, '10:00', 'Beatmaking en direct', 60, 9, 5, 1, 0, 38],
+    [25, '21:00', 'Valorant', 135, 31, 19, 9, 6, 188],
+    [23, '23:30', 'Valorant', 110, 22, 13, 5, 2, 121],
+    [20, '20:45', 'Beatmaking en direct', 90, 27, 17, 8, 4.2, 164],
+    [18, '15:00', 'EA FC 26', 100, 19, 12, 4, 1.5, 97],
+    [15, '21:00', 'Valorant', 150, 40, 26, 14, 9.8, 252],
+    [13, '21:30', 'Beatmaking en direct', 120, 46, 29, 17, 12, 281],
+    [10, '11:00', 'Minecraft', 75, 16, 9, 3, 0, 52],
+    [8, '21:00', 'Valorant', 160, 52, 33, 18, 14.6, 310],
+    [5, '20:30', 'Beatmaking en direct', 105, 58, 36, 21, 18.3, 336],
+    [3, '21:15', 'Valorant', 140, 63, 41, 23, 21, 372],
+    [1, '21:00', 'Beatmaking en direct', 130, 71, 45, 26, 27.5, 418]
+  ];
+  return rows.map(function (r) {
+    return { id: uid(), date: dayOffset(r[0]), time: r[1], game: r[2], duration: r[3], peak: r[4], avg: r[5], subs: r[6], gifts: r[7], comments: r[8] };
+  });
+}
+$('btnDemo').addEventListener('click', function () {
+  var go = function () { state.lives = sampleLives(); save(); renderAll(); notify('Exemples chargés : 15 lives.'); };
+  if (state.lives.length) ask('Remplacer tes lives ?', 'Les exemples vont remplacer les lives déjà enregistrés. Cette action est définitive.', 'Remplacer par les exemples', go);
+  else go();
+});
+$('btnClear').addEventListener('click', function () {
+  var isDefault = state.goal.target === DEFAULT_GOAL.target && state.goal.start === DEFAULT_GOAL.start;
+  if (!state.lives.length && isDefault) { notify('Il n’y a rien à effacer.'); return; }
+  ask('Tout effacer ?', 'Tous tes lives seront supprimés et l’objectif reviendra à 500 abonnés. Cette action est définitive.', 'Tout effacer', function () {
+    state.lives = []; state.goal = { target: DEFAULT_GOAL.target, start: DEFAULT_GOAL.start };
+    save(); syncGoalInputs(); $('goalMsg').textContent = ''; renderAll(); notify('Toutes les données ont été effacées.');
+  });
+});
+ 
+/* ---------- Démarrage ---------- */
+document.addEventListener('click', function (ev) {
+  if (!ev.target.closest || ev.target.closest('.chart')) return;
+  var tip = document.querySelector('.tip'); if (tip) tip.hidden = true;
+});
+var resizeTimer;
+window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderChart, 120); });
+ 
+loadState();
+F.date.value = todayStr(); F.date.max = todayStr();
+syncGoalInputs();
+$('storageWarn').hidden = storageOK;
+renderAll();
+})();
+</script>
+</body>
+</html>
+ 
